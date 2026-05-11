@@ -1,109 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Briefcase, Users, Monitor, X, Menu } from 'lucide-react';
+import React from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { User, LogOut, LayoutDashboard, Globe } from 'lucide-react';
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoggedIn, user, logout, setShowAuth, setAuthMode } = useAuth();
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleLogout = () => {
     logout();
-    setShowProfileMenu(false);
     navigate('/');
   };
 
   return (
-    <>
-      <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
-        <div className="container nav-content">
+    <nav className="navbar glass-nav">
+      <div className="container nav-content">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
           <Link to="/" className="logo">
-            <Briefcase size={28} className="logo-icon" />
             HireBlue
           </Link>
           
-          <div className="nav-links desktop-only">
-            <Link to="/jobs" className="nav-link">Find Jobs</Link>
-            <Link to="/employers" className="nav-link">For Employers</Link>
-            <Link to="/verification" className="nav-link">Verification</Link>
-            <Link to="/pricing" className="nav-link">Pricing</Link>
-            
-            {isLoggedIn ? (
-              <div className="profile-container">
-                <button 
-                  className="profile-trigger"
-                  onClick={() => setShowProfileMenu(!showProfileMenu)}
-                >
-                  <div className="avatar">
-                    <Users size={16} />
-                  </div>
-                  <span className="user-name">{user?.name || 'User'}</span>
-                </button>
-
-                {showProfileMenu && (
-                  <div className="profile-dropdown">
-                    <div className="dropdown-header">
-                      <strong>{user?.name}</strong>
-                      <span>{user?.email}</span>
-                    </div>
-                    <Link 
-                      to="/dashboard" 
-                      className="dropdown-item"
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <Monitor size={16} /> Dashboard
-                    </Link>
-                    <Link to="/settings" className="dropdown-item" onClick={() => setShowProfileMenu(false)}>
-                      <Users size={16} /> Account Settings
-                    </Link>
-                    <button className="dropdown-item logout" onClick={handleLogout}>
-                      <X size={16} /> Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <button 
-                  className="btn-secondary" 
-                  onClick={() => { setShowAuth(true); setAuthMode('signin'); }}
-                >
-                  Sign In
-                </button>
-                <button className="btn-primary">Post a Job</button>
-              </>
-            )}
-          </div>
-
-          <button 
-            className="mobile-menu-btn" 
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
-        </div>
-
-        {/* Mobile Menu Drawer */}
-        <div className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
-          <Link to="/jobs" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Find Jobs</Link>
-          <Link to="/employers" className="nav-link" onClick={() => setMobileMenuOpen(false)}>For Employers</Link>
-          <Link to="/verification" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Verification</Link>
-          <Link to="/pricing" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
-          <div className="mobile-actions">
-            <button className="btn-secondary" onClick={() => { setShowAuth(true); setAuthMode('signin'); setMobileMenuOpen(false); }}>Sign In</button>
-            <button className="btn-primary">Post a Job</button>
+          <div className="nav-links">
+            <Link to="/jobs" className={`nav-link ${location.pathname === '/jobs' ? 'active' : ''}`}>Find Jobs</Link>
+            <Link to="/employers" className={`nav-link ${location.pathname === '/employers' ? 'active' : ''}`}>For Employers</Link>
+            <Link to="/verification" className={`nav-link ${location.pathname === '/verification' ? 'active' : ''}`}>Verification</Link>
           </div>
         </div>
-      </nav>
-    </>
+
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-light)', fontSize: '0.85rem', cursor: 'pointer' }}>
+            <Globe size={16} />
+            <span>English (India)</span>
+          </div>
+
+          <div style={{ width: '1px', height: '24px', background: 'var(--border-light)' }}></div>
+
+          {isLoggedIn ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <Link to="/dashboard" className="btn btn-ghost" style={{ padding: '8px 12px' }}>
+                <LayoutDashboard size={18} />
+                Dashboard
+              </Link>
+              <button onClick={handleLogout} className="btn btn-ghost" style={{ color: 'var(--danger)' }}>
+                <LogOut size={18} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <button 
+                className="btn btn-ghost" 
+                style={{ color: 'var(--blue-primary)', fontWeight: 700 }}
+                onClick={() => { setAuthMode('signin'); setShowAuth(true); }}
+              >
+                Sign In
+              </button>
+              <button 
+                className="btn btn-primary"
+                style={{ borderRadius: 'var(--radius-sm)' }}
+                onClick={() => { setAuthMode('signup'); setShowAuth(true); }}
+              >
+                Post a Job
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </nav>
   );
 }
