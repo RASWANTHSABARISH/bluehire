@@ -35,6 +35,15 @@
   --font-body: 'Inter', sans-serif;
   
   --transition: all 0.2s ease;
+
+  /* Standardized Typography Scale */
+  --fs-hero: 2.5rem;
+  --fs-h1: 2rem;
+  --fs-h2: 1.5rem;
+  --fs-h3: 1.15rem;
+  --fs-body: 0.95rem;
+  --fs-small: 0.85rem;
+  --fs-tiny: 0.75rem;
 }
 
 * {
@@ -48,14 +57,14 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-main);
   line-height: 1.5;
+  font-size: var(--fs-body);
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  color: var(--blue-deep);
-}
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+h4 { font-size: var(--fs-small); }
 
 a {
   text-decoration: none;

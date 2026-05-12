@@ -10,8 +10,16 @@ export function AuthProvider({ children }) {
 
   const login = (userData) => {
     setIsLoggedIn(true);
-    setUser(userData);
+    setUser({
+      ...userData,
+      isVerified: false,
+      verificationStatus: 'unverified' // unverified, pending, verified
+    });
     setShowAuth(false);
+  };
+
+  const updateUser = (updates) => {
+    setUser(prev => prev ? { ...prev, ...updates } : null);
   };
 
   const logout = () => {
@@ -21,7 +29,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      isLoggedIn, user, login, logout,
+      isLoggedIn, user, login, logout, updateUser,
       showAuth, setShowAuth,
       authMode, setAuthMode
     }}>

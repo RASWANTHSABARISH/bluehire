@@ -6,6 +6,8 @@ import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
+import JobDetails from './pages/JobDetails';
+import PostJob from './pages/PostJob';
 import Employers from './pages/Employers';
 import Verification from './pages/Verification';
 import Pricing from './pages/Pricing';
@@ -23,6 +25,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/:id" element={<JobDetails />} />
+              <Route path="/post-job" element={<PostJob />} />
               <Route path="/employers" element={<Employers />} />
               <Route path="/verification" element={<Verification />} />
               <Route path="/pricing" element={<Pricing />} />
