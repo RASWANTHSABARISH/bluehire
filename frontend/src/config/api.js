@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
     LOGIN: `${API_BASE_URL}/auth/login`,
     ME: `${API_BASE_URL}/auth/me`,
     UPDATE_PROFILE: `${API_BASE_URL}/auth/profile`,
+    VERIFY: `${API_BASE_URL}/auth/verify`,
     SUBSCRIBE: `${API_BASE_URL}/auth/subscribe`,
   },
   JOBS: {

@@ -1,5 +1,6 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
+const User = require('../models/User');
 
 // @desc    Apply to a job
 // @route   POST /api/applications
@@ -17,6 +18,29 @@ exports.applyToJob = async (req, res) => {
     // Get job to find employerId
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
+
+    if (job.status !== 'open' || !job.isActive || (job.expiresAt && job.expiresAt < new Date())) {
+      return res.status(400).json({ success: false, message: 'This job is no longer accepting applications' });
+    }
+
+    const worker = await User.findById(workerId);
+    if (!worker) return res.status(404).json({ success: false, message: 'Worker not found' });
+
+    if (!worker.profileComplete) {
+      return res.status(400).json({
+        success: false,
+        message: 'Complete your profile (name, phone, city, and state) before applying',
+        profileIncomplete: true
+      });
+    }
+
+    if (job.sectorMeta?.verifiedOnly && !worker.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: 'This job requires Aadhaar verification. Complete verification first.',
+        verificationRequired: true
+      });
+    }
 
     const application = await Application.create({
       workerId,

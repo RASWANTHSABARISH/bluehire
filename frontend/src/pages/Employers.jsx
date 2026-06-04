@@ -108,7 +108,7 @@ export default function Employers() {
       <section className="section-padding" style={{ background: 'var(--bg-secondary)' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <h2 style={{ fontSize: '2.5rem' }}>Why top brands trust ShiftServe</h2>
+            <h2 style={{ fontSize: '2.5rem' }}>Why top brands trust HireBlue</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
             <div className="pricing-card" style={{ padding: '32px' }}>

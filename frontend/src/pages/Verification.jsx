@@ -6,9 +6,11 @@ import {
   Loader2, Star, Zap, TrendingUp, Award 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function Verification() {
-  const { user, updateUser, isLoggedIn } = useAuth();
+  const { user, refreshUser, isLoggedIn } = useAuth();
+  const [submitError, setSubmitError] = useState('');
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -118,16 +120,27 @@ export default function Verification() {
     }
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     setLoading(true);
-    setTimeout(() => {
-      updateUser({ 
-        verificationStatus: 'verified',
-        isVerified: true 
+    setSubmitError('');
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(API_ENDPOINTS.AUTH.VERIFY, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
       });
+      const data = await res.json();
+      if (data.success) {
+        await refreshUser();
+        setStep(4);
+      } else {
+        setSubmitError(data.message || 'Verification failed');
+      }
+    } catch {
+      setSubmitError('Could not reach the server. Please try again.');
+    } finally {
       setLoading(false);
-      setStep(4);
-    }, 2000);
+    }
   };
 
   return (
@@ -251,6 +264,9 @@ export default function Verification() {
                 </div>
               </div>
 
+              {submitError && (
+                <p style={{ color: 'var(--danger)', fontSize: '0.9rem', marginBottom: '16px' }}>{submitError}</p>
+              )}
               <button 
                 className="btn btn-primary" 
                 style={{ width: '100%', padding: '16px' }} 

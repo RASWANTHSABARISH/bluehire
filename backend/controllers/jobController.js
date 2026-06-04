@@ -25,7 +25,11 @@ exports.getJobFeed = async (req, res) => {
       query._id = { $nin: appliedJobIds };
     }
 
-    const jobs = await Job.find(query).sort({ createdAt: -1 });
+    query.expiresAt = { $gt: new Date() };
+
+    const jobs = await Job.find(query)
+      .populate('employerId', 'name employerProfile')
+      .sort({ createdAt: -1 });
     
     res.status(200).json({ success: true, count: jobs.length, data: jobs });
   } catch (err) {
@@ -37,7 +41,11 @@ exports.getJobFeed = async (req, res) => {
 // @route   GET /api/jobs
 exports.getJobs = async (req, res) => {
   try {
-    const jobs = await Job.find().populate('employerId', 'name employerProfile').sort({ createdAt: -1 });
+    const jobs = await Job.find({
+      status: 'open',
+      isActive: true,
+      expiresAt: { $gt: new Date() }
+    }).populate('employerId', 'name employerProfile').sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: jobs.length, data: jobs });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server Error' });

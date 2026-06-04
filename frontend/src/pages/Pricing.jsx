@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api';
 
 export default function Pricing() {
-  const { user, login } = useAuth();
-  const navigate = useNavigate();
+  const { user, setShowAuth, setAuthMode } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -14,7 +12,8 @@ export default function Pricing() {
 
   const handleSubscribe = async (planName) => {
     if (!user) {
-      navigate('/login');
+      setAuthMode('signin');
+      setShowAuth(true);
       return;
     }
 
@@ -60,6 +59,9 @@ export default function Pricing() {
           <div className="section-header">
             <h2>Transparent Pricing</h2>
             <p>Simple and straightforward pricing for employers. Always free for job seekers.</p>
+            <p style={{ marginTop: '12px', fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '560px', margin: '12px auto 0' }}>
+              Demo mode: plan upgrades update your account instantly without payment. Integrate a payment gateway before production.
+            </p>
             {error && <p style={{ color: 'var(--danger)', marginTop: '16px', fontWeight: 'bold' }}>{error}</p>}
           </div>
           
