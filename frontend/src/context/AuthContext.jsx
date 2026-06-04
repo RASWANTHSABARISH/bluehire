@@ -104,9 +104,19 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const updateUser = (updates) => {
+    setUser((prev) => (prev ? { ...prev, ...updates } : prev));
+  };
+
+  const refreshUser = async () => {
+    const token = localStorage.getItem('token');
+    if (token) await fetchProfile(token);
+  };
+
   return (
     <AuthContext.Provider value={{
       isLoggedIn, user, login, register, logout, loading,
+      updateUser, refreshUser,
       showAuth, setShowAuth,
       authMode, setAuthMode
     }}>

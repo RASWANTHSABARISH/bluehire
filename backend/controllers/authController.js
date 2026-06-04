@@ -98,9 +98,34 @@ exports.updateProfile = async (req, res) => {
     if (city) user.city = city;
     if (state) user.state = state;
     
+    if (user.role === 'worker') {
+      user.profileComplete = !!(user.name && user.phone && user.city && user.state);
+    }
+
     await user.save();
     
     res.status(200).json({ success: true, data: user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message || 'Server Error' });
+  }
+};
+
+// @desc    Mark worker as identity-verified (demo flow — replace with real Aadhaar API in production)
+// @route   POST /api/auth/verify
+exports.verifyIdentity = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    if (user.role !== 'worker') {
+      return res.status(403).json({ success: false, message: 'Only workers can complete identity verification' });
+    }
+
+    user.isVerified = true;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Identity verified successfully', data: user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message || 'Server Error' });
   }

@@ -8,7 +8,10 @@ export default function Navbar() {
   const location = useLocation();
   const { isLoggedIn, logout, setShowAuth, setAuthMode } = useAuth();
   const [showRegionDropdown, setShowRegionDropdown] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState('Mumbai, MH');
+  const REGION_STORAGE_KEY = 'hireblue_region';
+  const [selectedRegion, setSelectedRegion] = useState(() => {
+    return localStorage.getItem(REGION_STORAGE_KEY) || 'Mumbai, MH';
+  });
 
   const regions = [
     'Mumbai, MH', 'Bangalore, KA', 'New Delhi, DL', 
@@ -57,7 +60,12 @@ export default function Navbar() {
                 {regions.map(r => (
                   <button 
                     key={r}
-                    onClick={() => { setSelectedRegion(r); setShowRegionDropdown(false); }}
+                    onClick={() => {
+                      setSelectedRegion(r);
+                      localStorage.setItem(REGION_STORAGE_KEY, r);
+                      window.dispatchEvent(new CustomEvent('hireblue-region-change'));
+                      setShowRegionDropdown(false);
+                    }}
                     style={{ width: '100%', textAlign: 'left', padding: '10px 12px', background: selectedRegion === r ? 'var(--blue-light)' : 'none', border: 'none', borderRadius: '4px', fontSize: '0.85rem', cursor: 'pointer', color: selectedRegion === r ? 'var(--blue-primary)' : 'var(--text-main)' }}
                   >
                     {r}

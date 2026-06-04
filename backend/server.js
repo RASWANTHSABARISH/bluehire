@@ -35,7 +35,7 @@ app.use(express.json());
 
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB Connected: ShiftServe Database'))
+  .then(() => console.log('✅ MongoDB Connected: HireBlue Database'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 // Routes
@@ -62,7 +62,7 @@ app.use((err, req, res, next) => {
 
 // Base Route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to ShiftServe API', status: 'running' });
+  res.json({ message: 'Welcome to HireBlue API', status: 'running' });
 });
 
 // Start Server

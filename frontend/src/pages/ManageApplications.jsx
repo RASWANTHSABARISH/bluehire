@@ -201,7 +201,13 @@ export default function ManageApplications() {
                           {app.status === 'shortlisted' && (
                             <>
                               <button onClick={() => handleStatusUpdate(app._id, 'interview_set')} className="btn btn-primary">Set Interview</button>
-                              <button className="btn btn-secondary"><MessageSquare size={18} /> Chat</button>
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => navigate('/dashboard', { state: { tab: 'messages', partnerId: app.workerId?._id } })}
+                              >
+                                <MessageSquare size={18} /> Chat
+                              </button>
                             </>
                           )}
                           {app.status === 'interview_set' && (

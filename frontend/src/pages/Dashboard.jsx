@@ -7,16 +7,26 @@ import {
   PlusCircle, Users, ClipboardList, Calendar, Loader2,
   Phone, MapPin, User, Save
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import LocationSelector from '../components/LocationSelector';
 
+const APPLICATION_STATUS_STYLES = {
+  hired: { background: '#DCFCE7', color: '#166534' },
+  rejected: { background: '#FEE2E2', color: '#991B1B' },
+  shortlisted: { background: '#DBEAFE', color: '#1E40AF' },
+  interview_set: { background: '#E0E7FF', color: '#3730A3' },
+  offer_sent: { background: '#F3E8FF', color: '#6B21A8' },
+  pending: { background: '#FEF3C7', color: '#92400E' },
+};
+
 export default function Dashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isEmployer = user?.role === 'employer';
   const [stats, setStats] = useState({ jobs: 0, applicants: 0, applications: 0 });
   const [recentActivity, setRecentActivity] = useState([]);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(location.state?.tab || 'overview');
   const [myApplications, setMyApplications] = useState([]);
   
   // Settings State
@@ -33,6 +43,11 @@ export default function Dashboard() {
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
+
+  useEffect(() => {
+    if (location.state?.tab) setActiveTab(location.state.tab);
+    if (location.state?.partnerId) setActiveConversation(location.state.partnerId);
+  }, [location.state]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -120,8 +135,8 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (data.success) {
+        await refreshUser();
         alert('Profile updated successfully!');
-        window.location.reload(); // Reload to refresh user context
       }
     } catch (err) { console.error(err); }
   };
@@ -368,7 +383,8 @@ export default function Dashboard() {
                             <span>Applied: {new Date(app.createdAt).toLocaleDateString()}</span>
                             <span>•</span>
                             <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
-                              ₹{app.jobId?.salaryMin} - ₹{app.jobId?.salaryMax} ({app.jobId?.salaryFreq})
+                              ₹{app.jobId?.salaryMin?.toLocaleString()} - ₹{app.jobId?.salaryMax?.toLocaleString()}
+                              {app.jobId?.sectorMeta?.salaryFreq ? ` / ${app.jobId.sectorMeta.salaryFreq}` : ''}
                             </span>
                           </div>
                         </div>
@@ -380,10 +396,9 @@ export default function Dashboard() {
                           borderRadius: 'var(--radius-full)', 
                           fontSize: '0.85rem', 
                           fontWeight: 700,
-                          background: app.status === 'accepted' ? '#DCFCE7' : app.status === 'rejected' ? '#FEE2E2' : '#FEF3C7',
-                          color: app.status === 'accepted' ? '#166534' : app.status === 'rejected' ? '#991B1B' : '#92400E',
+                          ...(APPLICATION_STATUS_STYLES[app.status] || APPLICATION_STATUS_STYLES.pending),
                         }}>
-                          {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                          {app.status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                         </span>
                       </div>
                     </div>

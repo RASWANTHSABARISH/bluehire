@@ -52,6 +52,16 @@ export default function JobDetails() {
       return;
     }
 
+    if (job?.sectorMeta?.verifiedOnly && !user.isVerified) {
+      setApplyError('This job requires Aadhaar verification. Complete verification first.');
+      return;
+    }
+
+    if (!user.profileComplete) {
+      setApplyError('Complete your profile (city and state) in Dashboard → Settings before applying.');
+      return;
+    }
+
     setApplying(true);
     setApplyError(null);
     try {
@@ -70,6 +80,11 @@ export default function JobDetails() {
         setJob(prev => ({ ...prev, applicantCount: (prev.applicantCount || 0) + 1 }));
       } else {
         setApplyError(data.message || 'Failed to apply');
+        if (data.verificationRequired) {
+          setTimeout(() => navigate('/verification'), 1500);
+        } else if (data.profileIncomplete) {
+          setTimeout(() => navigate('/dashboard', { state: { tab: 'settings' } }), 1500);
+        }
       }
     } catch (err) {
       setApplyError('Network error. Please try again.');

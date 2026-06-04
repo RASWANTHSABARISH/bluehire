@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api';
 import { 
   Search, MapPin, ArrowRight, ShieldCheck, Clock, Building2, 
   Apple, Play, Quote, ChefHat, Utensils, Users, LayoutGrid, 
@@ -9,6 +10,40 @@ import {
 export default function Home() {
   const navigate = useNavigate();
   const [selectedSector, setSelectedSector] = useState('restaurant');
+  const [searchWhat, setSearchWhat] = useState('');
+  const [searchWhere, setSearchWhere] = useState('');
+  const [featuredJobs, setFeaturedJobs] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const res = await fetch(API_ENDPOINTS.JOBS.BASE);
+        const data = await res.json();
+        if (data.success) {
+          setFeaturedJobs(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to load featured jobs', err);
+      } finally {
+        setFeaturedLoading(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
+
+  const sectorFeaturedJobs = featuredJobs
+    .filter((job) => job.sector === selectedSector)
+    .slice(0, 3);
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (selectedSector !== 'restaurant') params.set('sector', selectedSector);
+    if (searchWhat.trim()) params.set('q', searchWhat.trim());
+    if (searchWhere.trim()) params.set('where', searchWhere.trim());
+    const qs = params.toString();
+    navigate(qs ? `/jobs?${qs}` : '/jobs');
+  };
 
   // Sector-specific department data
   const sectorData = {
@@ -82,14 +117,33 @@ export default function Home() {
             <div className="search-field">
               <label htmlFor="what">What</label>
               <Search size={18} color="var(--text-light)" />
-              <input type="text" id="what" placeholder="Job title or keywords" />
+              <input
+                type="text"
+                id="what"
+                placeholder="Job title or keywords"
+                value={searchWhat}
+                onChange={(e) => setSearchWhat(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
             </div>
             <div className="search-field">
               <label htmlFor="where">Where</label>
               <MapPin size={18} color="var(--text-light)" />
-              <input type="text" id="where" placeholder="City or state" />
+              <input
+                type="text"
+                id="where"
+                placeholder="City or state"
+                value={searchWhere}
+                onChange={(e) => setSearchWhere(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
             </div>
-            <button className="btn btn-primary" style={{ borderRadius: 'var(--radius-md)', padding: '0 32px', marginLeft: '8px' }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ borderRadius: 'var(--radius-md)', padding: '0 32px', marginLeft: '8px' }}
+              onClick={handleSearch}
+            >
               Find Jobs
             </button>
           </div>
@@ -141,14 +195,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ShiftServe Insights */}
+      {/* HireBlue Insights */}
       <section className="section-padding" style={{ background: 'var(--blue-deep)', color: 'white' }}>
         <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '60px', alignItems: 'center' }}>
             <div>
               <h2 style={{ color: 'white', fontSize: '2.5rem', marginBottom: '24px', lineHeight: '1.2' }}>One platform. <br/>All your staffing needs.</h2>
               <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', marginBottom: '32px' }}>
-                ShiftServe connects verified professionals across India's most critical sectors—from food service and healthcare to the textile loom network.
+                HireBlue connects verified professionals across India's most critical sectors—from food service and healthcare to the textile loom network.
               </p>
               <button className="btn btn-primary" style={{ background: 'white', color: 'var(--blue-deep)' }} onClick={() => navigate('/employers')}>
                 Learn about our sectors
@@ -172,7 +226,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Jobs Placeholder Section */}
+      {/* Featured Jobs */}
       <section className="featured-section">
         <div className="container">
           <div className="section-header-clean" style={{ marginBottom: '40px' }}>
@@ -181,38 +235,50 @@ export default function Home() {
           </div>
 
           <div className="job-card-list">
-             {/* Note: In a real app, this would filter by selectedSector */}
-             <div className="job-card-premium">
-                <div className="job-card-header">
-                  <div>
-                    <h3 style={{ fontSize: '1.2rem', marginBottom: '4px' }}>Professional {sectors.find(s => s.id === selectedSector).label} Role</h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                      <Building2 size={16} />
-                      Premium Institute
+            {featuredLoading ? (
+              <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading openings…</p>
+            ) : sectorFeaturedJobs.length > 0 ? (
+              sectorFeaturedJobs.map((job) => (
+                <div key={job._id} className="job-card-premium">
+                  <div className="job-card-header">
+                    <div>
+                      <h3 style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{job.title}</h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+                        <Building2 size={16} />
+                        {job.employerId?.employerProfile?.businessName || job.employerId?.name || 'Employer'}
+                      </div>
+                    </div>
+                    <div style={{ background: 'var(--blue-light)', color: 'var(--blue-primary)', padding: '4px 12px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600 }}>
+                      {job.jobType}
                     </div>
                   </div>
-                  <div style={{ background: 'var(--blue-light)', color: 'var(--blue-primary)', padding: '4px 12px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600 }}>
-                    Full-time
+                  <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', marginTop: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-light)' }}>
+                      <MapPin size={16} /> {job.location?.city || 'India'}{job.location?.state ? `, ${job.location.state}` : ''}
+                    </div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--success)' }}>
+                      ₹{job.salaryMin?.toLocaleString()} - ₹{job.salaryMax?.toLocaleString()}
+                    </div>
+                  </div>
+                  <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
+                      <Clock size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                      Posted {new Date(job.createdAt).toLocaleDateString()}
+                    </span>
+                    <button type="button" className="btn btn-ghost" style={{ fontSize: '0.9rem', padding: '6px 12px' }} onClick={() => navigate(`/jobs/${job._id}`)}>
+                      View Details
+                    </button>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', marginTop: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', color: 'var(--text-light)' }}>
-                    <MapPin size={16} /> Chennai, TN
-                  </div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--success)' }}>
-                    ₹35,000 - ₹50,000
-                  </div>
-                </div>
-                <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                    <Clock size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                    Posted Just Now
-                  </span>
-                  <button className="btn btn-ghost" style={{ fontSize: '0.9rem', padding: '6px 12px' }} onClick={() => navigate('/jobs/1')}>
-                    View Details
-                  </button>
-                </div>
-             </div>
+              ))
+            ) : (
+              <div style={{ textAlign: 'center', padding: '32px' }}>
+                <p style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>No live listings in this sector yet.</p>
+                <button type="button" className="btn btn-primary" onClick={() => navigate(`/jobs?sector=${selectedSector}`)}>
+                  Browse all jobs
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
