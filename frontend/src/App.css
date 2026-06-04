@@ -168,8 +168,9 @@ main {
 }
 
 .job-card-premium:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.08);
   border-color: var(--blue-primary);
+  transform: translateY(-4px);
 }
 
 .job-card-header {

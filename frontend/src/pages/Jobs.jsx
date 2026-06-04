@@ -1,13 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Clock, Building2, ChevronDown, Bookmark, Utensils, Stethoscope, Factory, GraduationCap } from 'lucide-react';
+import { Search, MapPin, Clock, Building2, ChevronDown, Bookmark, Utensils, Stethoscope, Factory, GraduationCap, Loader2, Briefcase } from 'lucide-react';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function Jobs() {
   const navigate = useNavigate();
-  const [selectedSector, setSelectedSector] = useState('restaurant');
+  const [selectedSector, setSelectedSector] = useState('all');
   
   // Professional Sector Config
   const sectors = [
+    { id: 'all', label: 'All Jobs', icon: <Briefcase size={18} /> },
     { id: 'restaurant', label: 'Restaurant', icon: <Utensils size={18} /> },
     { id: 'healthcare', label: 'Healthcare', icon: <Stethoscope size={18} /> },
     { id: 'textile', label: 'Textiles', icon: <Factory size={18} /> },
@@ -16,6 +18,10 @@ export default function Jobs() {
 
   // Dynamic Filter Config per Sector
   const filterConfig = {
+    all: {
+      departments: ["Any Department"],
+      salary: ["Any", "₹10k+", "₹25k+", "₹50k+"]
+    },
     restaurant: {
       departments: ["Back of House", "Front of House", "Management", "Operations"],
       salary: ["₹15k - ₹25k", "₹25k - ₹40k", "₹40k - ₹70k", "₹70k+"]
@@ -34,62 +40,32 @@ export default function Jobs() {
     }
   };
 
-  // Mock Jobs Data (Ideally this would come from an API filtered by sector)
-  const allJobs = [
-    {
-      id: 1,
-      sector: 'restaurant',
-      title: "Executive Head Chef",
-      company: "Taj Mahal Palace",
-      location: "Mumbai, MH",
-      salary: "₹80,000 - ₹1,20,000",
-      type: "Full-time",
-      dept: "Back of House",
-      posted: "2h ago",
-      tags: ["High Growth", "Aadhaar Verified"]
-    },
-    {
-      id: 2,
-      sector: 'healthcare',
-      title: "Staff Nurse (ICU)",
-      company: "Apollo Hospitals",
-      location: "Chennai, TN",
-      salary: "₹35,000 - ₹50,000",
-      type: "Full-time",
-      dept: "Nursing Staff",
-      posted: "1h ago",
-      tags: ["Housing Provided", "Verified"]
-    },
-    {
-      id: 3,
-      sector: 'textile',
-      title: "Loom Operator",
-      company: "Lakshmi Textiles",
-      location: "Coimbatore, TN",
-      salary: "₹18,000 - ₹25,000",
-      type: "Full-time",
-      dept: "Loom Operations",
-      posted: "4h ago",
-      tags: ["Day Shift", "Aadhaar Verified"]
-    },
-    {
-      id: 4,
-      sector: 'student',
-      title: "Event Promoter",
-      company: "BrandLaunch India",
-      location: "Bangalore, KA",
-      salary: "₹8,000 - ₹12,000",
-      type: "Part-time",
-      dept: "Events & Promos",
-      posted: "30m ago",
-      tags: ["Student Friendly", "Weekend Only"]
-    }
-  ];
+  const [allJobs, setAllJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(API_ENDPOINTS.JOBS.BASE);
+        const data = await res.json();
+        if (data.success) {
+          setAllJobs(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch jobs', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, []);
 
   // Filter jobs based on selected sector
   const filteredJobs = useMemo(() => {
+    if (selectedSector === 'all') return allJobs;
     return allJobs.filter(job => job.sector === selectedSector);
-  }, [selectedSector]);
+  }, [allJobs, selectedSector]);
 
   return (
     <div className="jobs-page-container animate-fade">
@@ -178,8 +154,12 @@ export default function Jobs() {
             </p>
 
             <div className="job-card-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {filteredJobs.length > 0 ? filteredJobs.map(job => (
-                <div key={job.id} className="job-card-premium" style={{ cursor: 'pointer' }} onClick={() => navigate(`/jobs/${job.id}`)}>
+              {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+                  <Loader2 className="animate-spin" size={32} color="var(--blue-primary)" />
+                </div>
+              ) : filteredJobs.length > 0 ? filteredJobs.map(job => (
+                <div key={job._id} className="job-card-premium" style={{ cursor: 'pointer' }} onClick={() => navigate(`/jobs/${job._id}`)}>
                   <div className="job-card-header">
                     <div style={{ display: 'flex', gap: '16px' }}>
                       <div style={{ width: '48px', height: '48px', background: 'var(--bg-secondary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -188,10 +168,10 @@ export default function Jobs() {
                       <div>
                         <h3 style={{ fontSize: '1.25rem', marginBottom: '4px', color: 'var(--blue-primary)' }}>{job.title}</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: 500, fontSize: '0.95rem' }}>
-                          {job.company}
+                          {job.employerId?.employerProfile?.businessName || job.employerId?.name || 'Top Employer'}
                           <span style={{ color: 'var(--text-light)', fontWeight: 400 }}>•</span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-light)', fontWeight: 400 }}>
-                            <MapPin size={14} /> {job.location}
+                            <MapPin size={14} /> {job.location?.city ? `${job.location.city}, ${job.location.state}` : 'Location NA'}
                           </span>
                         </div>
                       </div>
@@ -203,18 +183,18 @@ export default function Jobs() {
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', margin: '16px 0' }}>
                     <div style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', padding: '4px 10px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600 }}>
-                      {job.type}
+                      {job.jobType}
                     </div>
                     <div style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', padding: '4px 10px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 600 }}>
-                      {job.dept}
+                      {job.sectorMeta?.experience || 'General'}
                     </div>
                     <div style={{ color: 'var(--success)', fontSize: '0.95rem', fontWeight: 700, marginLeft: 'auto' }}>
-                      {job.salary}
+                      ₹{job.salaryMin?.toLocaleString()} - ₹{job.salaryMax?.toLocaleString()}
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-                    {job.tags.map(tag => (
+                    {(job.tags || ["Verified"]).map(tag => (
                       <span key={tag} style={{ fontSize: '0.75rem', background: 'var(--blue-light)', color: 'var(--blue-primary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
                         {tag}
                       </span>
@@ -224,7 +204,7 @@ export default function Jobs() {
                   <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
                       <Clock size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                      Posted {job.posted}
+                      Posted {new Date(job.createdAt).toLocaleDateString()}
                     </span>
                     <button className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '0.9rem', borderRadius: 'var(--radius-md)' }}>
                       Apply Now

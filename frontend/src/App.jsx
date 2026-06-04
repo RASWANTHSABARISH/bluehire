@@ -12,6 +12,7 @@ import Employers from './pages/Employers';
 import Verification from './pages/Verification';
 import Pricing from './pages/Pricing';
 import Dashboard from './pages/Dashboard';
+import ManageApplications from './pages/ManageApplications';
 import './App.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
               <Route path="/verification" element={<Verification />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/manage-applications" element={<ManageApplications />} />
             </Routes>
           </main>
           
