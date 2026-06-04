@@ -16,8 +16,15 @@ app.use((req, res, next) => {
 });
 
 // 2. High-Precision CORS Configuration
+const allowedOrigins = ['http://localhost:5173', 'https://bluehire-delta.vercel.app'];
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
@@ -40,7 +47,12 @@ app.use('/api/messages', require('./routes/messageRoutes'));
 // Global Error Handler with CORS support
 app.use((err, req, res, next) => {
   console.error('SERVER ERROR:', err);
-  res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
+  }
   res.header('Access-Control-Allow-Credentials', 'true');
   res.status(err.status || 500).json({
     success: false,
